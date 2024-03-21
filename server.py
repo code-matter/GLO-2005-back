@@ -24,12 +24,29 @@ def db_connection():
 def home():
     return "Home"
 
-@app.route("/compagnons",methods=["GET","POST"])
-def get_compagnons():
+@app.route("/inscription",methods=["POST"])
+def signup():
     conn = db_connection()
     cursor = conn.cursor()
-    if request.method == "GET":
-        query = "SELECT * FROM Compagnon"
+        
+    if request.method == "POST":
+        data = request.get_json()
+        tuples= tuple(data.keys())
+        values = tuple(data.values())
+        query = f"""INSERT INTO Compagnon ({", ".join(tuples)}) VALUES {values}"""
+        cursor.execute(query)
+        conn.commit()
+        return jsonify('success'),200
+    
+
+@app.route("/connexion",methods=["POST"])
+def login():
+    conn = db_connection()
+    cursor = conn.cursor()
+    if request.method == "POST":
+        data = request.get_json()
+        print(data['email'])
+        query = f"SELECT * FROM Compagnon WHERE email = '{data['email']}' AND password = '{data['password']}'"
         cursor.execute(query)
         compagnons = [
             dict(
@@ -48,15 +65,6 @@ def get_compagnons():
         ]
         if compagnons is not None:
             return jsonify(compagnons),200
-        
-    if request.method == "POST":
-        data = request.get_json()
-        tuples= tuple(data.keys())
-        values = tuple(data.values())
-        query = f"""INSERT INTO Compagnon ({", ".join(tuples)}) VALUES {values}"""
-        cursor.execute(query)
-        conn.commit()
-        return jsonify('success'),200
 
 if __name__ == "__main__":
     app.run(debug=True,threaded=True)
